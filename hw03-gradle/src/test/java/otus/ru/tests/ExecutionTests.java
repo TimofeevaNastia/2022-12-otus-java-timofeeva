@@ -13,17 +13,16 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
-public class RunTests {
+public class ExecutionTests {
 
     public static void run(String className) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         Class<?> clazz = Class.forName(className);
         Method[] methods = clazz.getDeclaredMethods();
         Constructor<?> constructor = clazz.getConstructor();
-        Object object = constructor.newInstance();
-        runTests(methods, object);
+        runTests(methods, constructor);
     }
 
-    private static void runTests(Method[] methods, Object object) {
+    private static void runTests(Method[] methods, Constructor<?> constructor) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         Method[] testsMethods = Arrays.stream(methods).filter(method -> method.isAnnotationPresent(Test.class)
                 && !Modifier.isPrivate(method.getModifiers())).toArray(Method[]::new);
         int countTest = testsMethods.length;
@@ -35,19 +34,19 @@ public class RunTests {
             Method[] afterMethods = Arrays.stream(methods).filter(method -> method.isAnnotationPresent(After.class)).toArray(Method[]::new);
             checkPrivateBeforeAfter(beforeMethods);
             checkPrivateBeforeAfter(afterMethods);
-            Arrays.stream(testsMethods).forEach(method -> {
-                runBeforeOrAfter(beforeMethods, object);
+            for (Method method : testsMethods) {
+                runBeforeOrAfter(beforeMethods, constructor.newInstance());
                 try {
-                    method.invoke(object);
+                    method.invoke(constructor.newInstance());
                     countSuccessTest.getAndIncrement();
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     countFailTest.getAndIncrement();
                     e.printStackTrace();
                 }
-                runBeforeOrAfter(afterMethods, object);
-            });
+                runBeforeOrAfter(afterMethods, constructor.newInstance());
+            }
+            log.info("Total tests: {}, Fail: {}, Success: {}", countTest, countFailTest.get(), countSuccessTest.get());
         }
-        log.info("Total tests: {}, Fail: {}, Success: {}", countTest, countFailTest.get(), countSuccessTest.get());
     }
 
 
