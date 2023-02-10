@@ -35,15 +35,16 @@ public class ExecutionTests {
             checkPrivateBeforeAfter(beforeMethods);
             checkPrivateBeforeAfter(afterMethods);
             for (Method method : testsMethods) {
-                runBeforeOrAfter(beforeMethods, constructor.newInstance());
+                Object object = constructor.newInstance();
+                runBeforeOrAfter(beforeMethods, object);
                 try {
-                    method.invoke(constructor.newInstance());
+                    method.invoke(object);
                     countSuccessTest.getAndIncrement();
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     countFailTest.getAndIncrement();
                     e.printStackTrace();
                 }
-                runBeforeOrAfter(afterMethods, constructor.newInstance());
+                runBeforeOrAfter(afterMethods, object);
             }
             log.info("Total tests: {}, Fail: {}, Success: {}", countTest, countFailTest.get(), countSuccessTest.get());
         }
