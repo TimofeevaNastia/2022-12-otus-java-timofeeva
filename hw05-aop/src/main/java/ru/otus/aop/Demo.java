@@ -7,6 +7,7 @@ public class Demo {
         TestLoggingInterface testLoggingInterface = ProxyTest.createTestLogging();
         testLoggingInterface.calculation(new TestType(25));
         testLoggingInterface.calculation(6);
+        testLoggingInterface.calculation(7);
         testLoggingInterface.calculation("6", 7);
     }
 }
